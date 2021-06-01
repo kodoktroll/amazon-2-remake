@@ -54,7 +54,7 @@ export default async (req, res) => {
             // fulfill the order
             return fulfillOrder(session)
                 .then(() => res.status(200))
-                .catch((err) => res.status(400).send(`Webhook Error: ${err.message}`));
+                .catch((err) => res.status(400).send(`Firebase Fulfill Error: ${err.message}`));
 
         }
     }
