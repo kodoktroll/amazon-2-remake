@@ -5,6 +5,9 @@ import CheckoutProduct from "../components/CheckoutProduct";
 import Currency from 'react-currency-formatter';
 import { selectItems, selectTotal } from "../slices/basketSlice";
 import { useSession } from "next-auth/client";
+import { loadStripe } from "@stripe/stripe-js";
+import axios from "axios";
+const stripePromise = loadStripe(process.env.stripe_public_key);
 
 function Checkout() {
     const [session] = useSession();
@@ -14,6 +17,37 @@ function Checkout() {
         r[a.id] = [...r[a.id] || [], a]
         return r
     }, {}));
+
+    const checkoutItems = groupedItems.map((item: any[]) => ({
+        id: item[0].id,
+        title: item[0].title,
+        price: item[0].price ,
+        rating: item[0].rating,
+        description: item[0].description,
+        category: item[0].category,
+        image: item[0].image,
+        hasPrime: item[0].hasPrime,
+        quantity: item.length
+    }));
+
+    const createCheckoutSession = async () => {
+        const stripe = await stripePromise;
+
+        const checkoutSession = await axios.post('/api/create-checkout-session', {
+            items: checkoutItems,
+            email: session.user.email
+        });
+
+        // redirect to stripe checkout
+        const result = await stripe.redirectToCheckout({
+            sessionId: checkoutSession.data.id
+        });
+
+        if (result.error) {
+            alert(result.error.message);
+        }
+    }
+
     return (
         <div className="bg-gray-100">
             <Header/>
@@ -28,18 +62,18 @@ function Checkout() {
                     />
                     <div className="flex flex-col p-5 space-y-10 bg-white">
                         <h1 className ="text-3xl border-b pb-4">{items.length === 0 ? "Your Amazon Basket is Empty" : "Shopping Basket"}</h1>
-                        {groupedItems.map((group: any[], i) => (
+                        {checkoutItems.map((item, i) => (
                             <CheckoutProduct 
                                 key={i}
-                                id={group[0].id}
-                                title={group[0].title}
-                                price={group[0].price} 
-                                rating={group[0].rating}
-                                description={group[0].description}
-                                category={group[0].category}
-                                image={group[0].image}
-                                hasPrime={group[0].hasPrime}
-                                quantity={group.length}
+                                id={item.id}
+                                title={item.title}
+                                price={item.price} 
+                                rating={item.rating}
+                                description={item.description}
+                                category={item.category}
+                                image={item.image}
+                                hasPrime={item.hasPrime}
+                                quantity={item.quantity}
                             />
                         ))}
                     </div>
@@ -55,7 +89,9 @@ function Checkout() {
                             </span>
 
                             <button 
+                                role="link"
                                 disabled={!session}
+                                onClick={createCheckoutSession}
                                 className={`button mt-2 ${!session && "from-gray-300 to-gray-500 border-gray-200 text-gray-300 cursor-not-allowed"}`}>
                                     {!session ? "Sign in to check out" : "Proceed to checkout"}
                             </button>
