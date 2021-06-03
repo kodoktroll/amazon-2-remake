@@ -1,7 +1,22 @@
 import { createSlice } from "@reduxjs/toolkit";
-// import { RootState } from "../app/store";
+import { RootState } from "../app/store";
 
-const initialState = {
+type Basket = {
+    id: string, 
+    title: string, 
+    price: number, 
+    rating: number,
+    description: string, 
+    category: string, 
+    image: string,
+    hasPrime: boolean
+}
+
+interface BasketState {
+    items: Basket[]
+}
+
+const initialState : BasketState = {
     items: []
 }
 
@@ -26,8 +41,8 @@ export const basketSlice = createSlice({
 
 export const { addToBasket, removeFromBasket } = basketSlice.actions;
 
-export const selectItems = (state) => state.basket.items;
+export const selectItems = (state: RootState) => state.basket.items;
 
-export const selectTotal = (state) => state.basket.items.reduce((total, item) => total + item.price, 0);
+export const selectTotal = (state: RootState) => state.basket.items.reduce((total, item) => total + item.price, 0);
 
 export default basketSlice.reducer;

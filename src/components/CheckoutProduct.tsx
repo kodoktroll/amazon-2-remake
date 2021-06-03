@@ -4,6 +4,18 @@ import Currency from "react-currency-formatter";
 import { useDispatch } from "react-redux";
 import { addToBasket, removeFromBasket } from "../slices/basketSlice";
 
+type CheckoutProductProps = {
+    id: string,
+    title: string, 
+    price: number, 
+    rating: number, 
+    description: string, 
+    category: string, 
+    image: string, 
+    hasPrime: boolean, 
+    quantity: number
+}
+
 function CheckoutProduct({ 
     id, 
     title, 
@@ -14,7 +26,7 @@ function CheckoutProduct({
     image, 
     hasPrime, 
     quantity
-}) {
+}: CheckoutProductProps) {
     const dispatch = useDispatch()
 
     const addItemToBasket = () => {

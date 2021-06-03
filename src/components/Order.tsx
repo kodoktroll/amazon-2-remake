@@ -1,7 +1,18 @@
 import moment from "moment";
 import Currency from "react-currency-formatter";
 
-function Order({id, amount, amountShipping, items, timestamp, images}) {
+type OrderProps = {
+    id: string,
+    amount: number,
+    amountShipping: number,
+    items: {
+        quantity: number
+    }[],
+    timestamp: number,
+    images: string[]
+}
+
+function Order({id, amount, amountShipping, items, timestamp, images}: OrderProps) {
     return (
         <div className="relative border rounded-md">
             <div className="flex items-center space-x-10 p-5 bg-gray-100 text-sm text-gray-600">
@@ -16,13 +27,16 @@ function Order({id, amount, amountShipping, items, timestamp, images}) {
                         <Currency quantity={amountShipping} currency="USD"/>
                     </p>
                 </div>
-                <p className="text-sm whitespace-nowrap sm:text-xl self-end flex-1 text-right text-blue-500">{items.length} items</p>
+                <p className="text-sm whitespace-nowrap sm:text-xl self-end flex-1 text-right text-blue-500">{items.reduce((prev, curr) => ({quantity: curr.quantity + prev.quantity}), {quantity: 0}).quantity} items</p>
                 <p className="absolute top-2 right-2 w-40 lg:w-72 truncate text-xs whitespace-nowrap">ORDER # {id}</p>
             </div>
             <div className="p-5 sm:p-10">
                 <div className="flex space-x-6 overflow-auto">
                     {images.map((image, i) => (
-                        <img src={image} key={i} alt="image" className="h-20 object-contain sm:h-32"/>
+                        <div key={i} className="p-5">
+                            <img src={image} alt="image" className="h-20 object-contain sm:h-32 mb-2"/>
+                            <p className="text-center text-sm font-bold">x {items[i].quantity}</p>
+                        </div>
                     ))}
                 </div>
             </div>

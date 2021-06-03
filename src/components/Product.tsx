@@ -8,7 +8,16 @@ import { addToBasket } from "../slices/basketSlice";
 const MAX_RATING = 5;
 const MIN_RATING = 1;
 
-function Product({id, title, price, description, category, image}) {
+export type ProductProps = {
+    id: string,
+    title: string,
+    price: number,
+    description: string,
+    category: string,
+    image: string
+}
+
+function Product({id, title, price, description, category, image}: ProductProps) {
     const [rating] = useState(
         Math.floor(Math.random() * (MAX_RATING - MIN_RATING + 1)) + MIN_RATING
     );

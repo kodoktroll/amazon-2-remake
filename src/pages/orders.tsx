@@ -1,13 +1,14 @@
 import moment from "moment";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getSession, useSession } from "next-auth/client";
-import { delBasePath } from "next/dist/next-server/lib/router/router";
 import db from "../../firebase";
 import Header from "../components/Header";
 import Order from "../components/Order";
 
-function Orders({ orders }) {
+type OrderProps = InferGetServerSidePropsType<typeof getServerSideProps>;
+
+function Orders({ orders }: OrderProps) {
     const [session] = useSession();
-    console.log(orders);
     return (
         <div>
             <Header/>
@@ -20,7 +21,7 @@ function Orders({ orders }) {
                 )}
 
                 <div className="mt-5 space-y-4">
-                    {orders?.map(({id, amount, amountShipping, items, timestamp, images}) => (
+                    {orders?.map(({id, amount, amountShipping, items, timestamp, images}:FetchedOrder) => (
                         <Order 
                             key={id}
                             id={id}
@@ -40,7 +41,22 @@ function Orders({ orders }) {
 
 export default Orders;
 
-export async function getServerSideProps(context) {
+interface FetchedOrder {
+    id: string,
+    amount: number,
+    amountShipping: number,
+    images: string[],
+    timestamp: number,
+    items: {
+        quantity: number
+    }[]
+}
+
+interface StripeItem {
+    quantity: number
+}
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
     const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
     // Get the users logged in credentials
@@ -56,7 +72,7 @@ export async function getServerSideProps(context) {
     const stripeOrders = await db.collection('users').doc(session.user.email).collection('orders').orderBy('timestamp', 'desc').get();
 
     //Stripe orders
-    const orders = await Promise.all(
+    const orders: FetchedOrder[] = await Promise.all(
         stripeOrders.docs.map(async (order) => ({
             id: order.id,
             amount: order.data().amount,
@@ -67,7 +83,7 @@ export async function getServerSideProps(context) {
                 await stripe.checkout.sessions.listLineItems(order.id, {
                     limit:100,
                 })
-            ).data
+            ).data.map((item: StripeItem) => ({quantity: item.quantity}))
         }))
     ) 
 

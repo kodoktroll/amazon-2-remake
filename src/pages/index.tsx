@@ -1,13 +1,21 @@
 import Head from 'next/head';
-import Image from 'next/image';
 import Header from '../components/Header';
 import Banner from '../components/Banner';
 import ProductFeed from '../components/ProductFeed';
-import { GetServerSideProps } from 'next';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { getSession } from 'next-auth/client';
 // import styles from '../styles/Home.module.css'
 
-export default function Home({ products }) {
+type Product = {
+  id: string,
+  title: string,
+  price: number,
+  description: string,
+  category: string,
+  image: string
+}
+
+export default function Home({ products }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
     <div className="bg-gray-100">
 
@@ -33,9 +41,10 @@ export default function Home({ products }) {
   )
 }
 
+
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context);
-  const products = await fetch("https://fakestoreapi.com/products").then(
+  const products: Product[] = await fetch("https://fakestoreapi.com/products").then(
     (res) => res.json()
   );
   
